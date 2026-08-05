@@ -273,20 +273,20 @@ display:flex;align-items:center;flex-shrink:0;height:48px;
 
 /* ERROR/HINT HANDLERS */
 .field-hint, .fhint{font-size:11px;color:var(--text-4);font-weight:500;margin-top:5px}
-.field-error{font-size:11px;color:#dc2626;font-weight:600;margin-top:5px;display:none}
+.field-error{font-size:11.5px;color:#dc2626;font-weight:600;margin-top:6px;display:none;line-height:1.3}
 
 /* INPUT HIGHLIGHT SYSTEM */
 .input-missing-highlight {
 border-color:var(--error) !important;
-background-color:rgba(220, 38, 38, 0.03) !important;
+background-color:rgba(220, 38, 38, 0.04) !important;
 box-shadow:0 0 0 4px rgba(220, 38, 38, 0.15) !important;
 animation:inputShake 0.4s ease;
 }
 
 @keyframes inputShake {
 0%, 100% {transform: translateX(0);}
-20%, 60% {transform: translateX(-4px);}
-40%, 80% {transform: translateX(4px);}
+20%, 60% {transform: translateX(-6px);}
+40%, 80% {transform: translateX(6px);}
 }
 
 /* BREAKDOWN METRICS */
@@ -379,7 +379,7 @@ display:flex;align-items:center;justify-content:center;
 font-size:13px;cursor:pointer;color:var(--text-3);border:none;
 }
 .sheet-body, .mb{padding:16px 20px}
-.sheet-sub, .msub{font-size:10px;text-transform:uppercase;letter-spacing:.7px;font-weight:700;color:var(--text-4);margin-bottom:10px}
+.sheet-sub, .msub{font-size:11px;text-transform:uppercase;letter-spacing:.7px;font-weight:700;color:var(--text-4);margin-bottom:10px}
 .masked-note{font-size:13px;color:var(--text-3);font-weight:500;text-align:center;padding:2px 0 8px}
 
 /* DYNAMIC SUMMARY GRID ROW HOOKS */
@@ -434,7 +434,7 @@ transition:border-color .15s,background .15s;
 .otp-box.a{border-color:var(--green);box-shadow:0 0 0 3px rgba(123,191,46,.12);background:#fff}
 .otp-box.d{opacity:.35;background:#f9fafb}
 
-.tr{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.tr{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
 .tl{font-size:12px;color:var(--text-4)}
 .tv{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--green-dark)}
 .rb{background:none;border:none;font-size:12px;font-weight:700;color:var(--green);opacity:.3;cursor:pointer;padding:0}
